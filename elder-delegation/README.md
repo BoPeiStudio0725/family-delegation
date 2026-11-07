@@ -73,15 +73,6 @@ flutter run -d web-server --web-hostname 0.0.0.0 --web-port 5000
 - **對應的程式**：前端在 `lib/delegation/townpass/`、`entry.dart`；後端在 `AccountService`、`AccountController`。
 - **正式上線**：要改成驗證台北通發的 token，不能直接相信前端傳來的帳號 id。目前是黑客松版本。
 
-### Demo 時要兩個不同的台北通帳號
-
-台北通的帳號是假資料，寫在台北通原始碼的 `assets/mock_data/account.json`，預設是「金大森」。要讓兩台模擬器登入不同的人：
-
-1. 模擬器 A 直接 `flutter run -d <A>`，登入的是預設的金大森（當家屬）。
-2. 把 `account.json` 的 `id` 改成別的字串（例如 `grandma-0001`），`realName` 改成 `金阿嬤`，`birthday` 改成 `1950/03/02`，然後 `flutter run -d <B>`。B 會用改過的檔案重新建置，A 不受影響。
-
-用 Chrome 開發時不需要這樣做，「開發測試模式」可以直接選金大森、金阿嬤、金小妹。
-
 ## 語音朗讀（長者端）
 
 設計前提：長輩可能不太識字。
