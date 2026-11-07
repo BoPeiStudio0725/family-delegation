@@ -37,8 +37,8 @@ class TownPassLoginFlowTest {
     @Test
     void roleIsDecidedByBinding() throws Exception {
         // 1. 第一次登入：依生日自動判定（65 歲含以上 → 長者，18–64 → 家屬）
-        JsonNode grandma = login("tp-grandma", "李阿嬤", "1948/05/01");
-        JsonNode son = login("tp-son", "李大明", "1980/02/02");
+        JsonNode grandma = login("tp-grandma", "金阿嬤", "1948/05/01");
+        JsonNode son = login("tp-son", "金大森", "1980/02/02");
         assert "ELDER".equals(grandma.get("role").asText());
         assert "FAMILY".equals(son.get("role").asText());
         assert "OLDEST_OLD".equals(grandma.get("ageGroup").asText()) || "MIDDLE_OLD".equals(grandma.get("ageGroup").asText());
@@ -55,8 +55,8 @@ class TownPassLoginFlowTest {
                 .andExpect(status().isCreated());
 
         // 3. 再次從台北通登入 → 直接辨識身分，且已綁定
-        JsonNode g2 = login("tp-grandma", "李阿嬤", "1948/05/01");
-        JsonNode s2 = login("tp-son", "李大明", "1980/02/02");
+        JsonNode g2 = login("tp-grandma", "金阿嬤", "1948/05/01");
+        JsonNode s2 = login("tp-son", "金大森", "1980/02/02");
         assert "ELDER".equals(g2.get("role").asText()) && g2.get("linked").asBoolean();
         assert "FAMILY".equals(s2.get("role").asText()) && s2.get("linked").asBoolean();
         assert g2.get("id").asText().equals(g); // 同一個台北通帳號 → 同一個使用者

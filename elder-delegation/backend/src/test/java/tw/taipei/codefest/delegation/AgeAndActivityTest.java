@@ -81,16 +81,16 @@ class AgeAndActivityTest {
 
     @Test
     void linkedElderAlsoSwitchesByAge() throws Exception {
-        // 陳阿嬤（id 1）已有授權申請；生日改成 40 歲 → 也會變成家屬
-        JsonNode g = login("demo-elder-chen", "陳阿嬤", LocalDate.now().minusYears(40));
+        // 金阿嬤（id 1）已有授權申請；生日改成 40 歲 → 也會變成家屬
+        JsonNode g = login("demo-townpass-grandma", "金阿嬤", LocalDate.now().minusYears(40));
         assertEquals("FAMILY", g.get("role").asText());
         // 改回 1950 → 長者
-        assertEquals("ELDER", login("demo-elder-chen", "陳阿嬤", LocalDate.of(1950, 3, 2)).get("role").asText());
+        assertEquals("ELDER", login("demo-townpass-grandma", "金阿嬤", LocalDate.of(1950, 3, 2)).get("role").asText());
     }
 
     @Test
     void activitiesAreFilteredByElderAgeAndCategory() throws Exception {
-        // 陳阿嬤（id 1）1950/03/02 出生
+        // 金阿嬤（id 1）1950/03/02 出生
         JsonNode res = json.readTree(mvc.perform(get("/api/elders/1/activities").header("X-User-Id", "1"))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
         int age = res.get("age").asInt();

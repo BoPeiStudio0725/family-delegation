@@ -23,9 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 class DelegationFlowTest {
-    private static final String ELDER = "1";   // 陳阿嬤
-    private static final String FAMILY = "2";  // 陳小明
-    private static final String STRANGER = "3"; // 林志明
+    private static final String ELDER = "1";   // 金阿嬤
+    private static final String FAMILY = "2";  // 金小妹
+    private static final String STRANGER = "3"; // 金大森（沒有授權）
 
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
@@ -58,7 +58,7 @@ class DelegationFlowTest {
 
         // 長者看到待同意
         mvc.perform(get("/api/delegations/pending").header("X-User-Id", ELDER))
-                .andExpect(jsonPath("$[0].familyName").value("陳小明"));
+                .andExpect(jsonPath("$[0].familyName").value("金小妹"));
 
         // 家屬不能自己同意
         mvc.perform(post("/api/delegations/" + delegationId + "/approve").header("X-User-Id", FAMILY)
@@ -74,7 +74,7 @@ class DelegationFlowTest {
         // 4. 家屬可以看資料
         mvc.perform(get("/api/elders/1/profile").header("X-User-Id", FAMILY))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("陳阿嬤"));
+                .andExpect(jsonPath("$.name").value("金阿嬤"));
 
         // 但不能報名（沒授權 BOOK_SERVICE）
         mvc.perform(post("/api/elders/1/bookings").header("X-User-Id", FAMILY)

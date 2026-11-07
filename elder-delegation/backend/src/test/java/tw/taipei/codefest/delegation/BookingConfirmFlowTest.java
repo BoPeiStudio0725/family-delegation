@@ -22,9 +22,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 class BookingConfirmFlowTest {
-    private static final String ELDER = "1";    // 陳阿嬤
-    private static final String FAMILY = "2";   // 陳小明
-    private static final String STRANGER = "3"; // 林志明
+    private static final String ELDER = "1";    // 金阿嬤
+    private static final String FAMILY = "2";   // 金小妹
+    private static final String STRANGER = "3"; // 金大森（沒有授權）
 
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
@@ -41,7 +41,7 @@ class BookingConfirmFlowTest {
         mvc.perform(get("/api/notices").header("X-User-Id", ELDER))
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].type").value("BOOKING_REQUESTED"))
-                .andExpect(jsonPath("$[0].title").value("陳小明 幫您報名了活動"))
+                .andExpect(jsonPath("$[0].title").value("金小妹 幫您報名了活動"))
                 .andExpect(jsonPath("$[0].read").value(false));
 
         // 只有長輩本人可以確認或取消
@@ -55,7 +55,7 @@ class BookingConfirmFlowTest {
         mvc.perform(get("/api/elders/1/bookings").header("X-User-Id", ELDER))
                 .andExpect(jsonPath("$[0].status").value("PENDING_ELDER"))
                 .andExpect(jsonPath("$[0].statusLabel").value("待長輩確認"))
-                .andExpect(jsonPath("$[0].bookedByName").value("陳小明"));
+                .andExpect(jsonPath("$[0].bookedByName").value("金小妹"));
 
         // 自動更新：長輩確認後，家屬那邊的版本戳記會改變
         String before = body(mvc.perform(get("/api/sync").header("X-User-Id", FAMILY)).andReturn()).get("stamp").asText();
@@ -124,7 +124,7 @@ class BookingConfirmFlowTest {
 
     @Test
     void elderOwnBookingIsConfirmedAndSendsNoNotice() throws Exception {
-        long id = book("4", 3, "CONFIRMED"); // 王阿公自己報名
+        long id = book("4", 3, "CONFIRMED"); // 金阿嬤（手機，id 4）自己報名
         mvc.perform(post("/api/elders/4/bookings/" + id + "/cancel").header("X-User-Id", "4"))
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
         mvc.perform(post("/api/elders/4/bookings/" + id + "/cancel").header("X-User-Id", "4"))

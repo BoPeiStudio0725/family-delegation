@@ -79,17 +79,17 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedUsers() {
         if (users.count() > 0) return;
-        // 全部為模擬資料（給自動測試和 demo.sh 用）。
-        // 從台北通進來的使用者會在第一次登入時自動建立，不用寫在這裡。
-        // 依序存，id 會是 1、2、3、4。
+        // 全部為模擬資料，和 README「測試用帳號」、台北通 account.json、瀏覽器開發測試選單是同一批人
+        // （台北通帳號 ID 相同，從台北通或瀏覽器登入會直接對到這些帳號）。
+        // 依序存，id 會是 1、2、3、4（自動測試和 demo.sh 用這些 id）。
         for (AppUser u : List.of(
-                new AppUser("demo-elder-chen", "陳阿嬤", Role.ELDER, "0912-000-001", "士林區", "1950/03/02", 480),
-                new AppUser("demo-family-chen", "陳小明", Role.FAMILY, "0912-000-002", "大安區", "1990/08/15", null),
-                new AppUser("demo-family-lin", "林志明", Role.FAMILY, "0912-000-003", "信義區", "1985/01/20", null),
-                new AppUser("demo-elder-wang", "王阿公", Role.ELDER, "0912-000-004", "北投區", "1948/11/11", 320))) {
+                new AppUser("demo-townpass-grandma", "金阿嬤", Role.ELDER, "0912345678", "士林區", "1950/03/02", 480),
+                new AppUser("demo-townpass-relative", "金小妹", Role.FAMILY, "0987654321", "大安區", "1995/06/18", null),
+                new AppUser("7f3562f4-bb3f-4ec7-89b9-da3b4b5ff250", "金大森", Role.FAMILY, "0932166777", "中山區", "1988/12/12", null),
+                new AppUser("grandma-0001", "金阿嬤", Role.ELDER, "0932166777", "中山區", "1950/03/02", 320))) {
             users.save(u);
         }
-        log.info("已建立示範帳號：1 陳阿嬤(長者) / 2 陳小明(家屬) / 3 林志明(家屬) / 4 王阿公(長者)");
+        log.info("已建立示範帳號：1 金阿嬤(長者，瀏覽器) / 2 金小妹(家屬) / 3 金大森(家屬) / 4 金阿嬤(長者，手機)");
     }
 
     private int importCsv() {
