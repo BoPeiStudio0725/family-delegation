@@ -28,15 +28,13 @@ mvn test                     # 跑完整授權流程的自動測試
 
 確認後端正常（需要 jq）：在專案根目錄執行 `./demo.sh`，整條流程會依序印出來，最後兩步應該分別是 403 和操作紀錄。
 
-## 2. 匯入開放資料（重要：評分項目「資料來源正確」）
+## 2. 匯入開放資料
 
 1. 到 data.taipei 或 data.gov.tw 搜尋「**臺北市銀髮族服務-社區照顧關懷據點**」（臺北市政府社會局，政府資料開放授權條款第 1 版），下載 CSV。
 2. 存成 `backend/src/main/resources/data/service_points.csv`。
 3. 刪掉 `backend/data/` 資料夾（清空資料庫），重新啟動，log 會顯示「已匯入 N 筆」。
 4. 如果出現亂碼，到 `application.yml` 把 `app.open-data.charset` 改成 `Big5`。
 5. 程式會依表頭名稱自動對應欄位。如果 log 顯示「找不到名稱欄位」，就把實際欄名加進 `DataSeeder.NAME_COLS`。
-
-沒放 CSV 時會自動建立名稱帶【示範】的假據點。**Demo 前一定要換成真資料。**
 
 ## 3. 啟動 Flutter（建置成網頁，放進台北通 webview）
 
@@ -50,10 +48,6 @@ flutter run -d chrome
 # 給台北通 webview 開：讓同網路的手機或模擬器連得到
 flutter run -d web-server --web-hostname 0.0.0.0 --web-port 5000
 ```
-
-- 後端位址：**沒有設定時，自動用「網頁所在主機的 8080 port」**。網頁和後端跑在同一台電腦上，就不用另外設定。不在同一台的話，加上 `--dart-define=API_BASE=http://<後端IP>:8080/api`。
-- 在台北通原始碼的 `lib/page/city_service/model/my_service_model.dart` 加一個服務，`destinationUrl` 填 `http://<電腦IP>:5000/`，`forceWebViewTitle` 填 `家人代辦`。
-- **Android 版台北通**：台北通預設不允許 http，要在台北通的 `android/app/src/main/AndroidManifest.xml` 的 `<application` 加上 `android:usesCleartextTraffic="true"`。另外，Android WebView 不支援網頁語音朗讀，所以 Demo 建議用 iOS。
 
 ## 台北通登入與身分辨識
 
@@ -71,7 +65,6 @@ flutter run -d web-server --web-hostname 0.0.0.0 --web-port 5000
 - **綁定時記住身分**：長輩產生邀請碼時記為長輩，家屬輸入邀請碼時記為家屬。之後再從台北通打開，就直接進入對應的介面。
 - **選錯可以改**：還沒有任何綁定時，首頁下方有「重新選擇身分」。已經綁定就不能換，避免關係錯亂。
 - **對應的程式**：前端在 `lib/delegation/townpass/`、`entry.dart`；後端在 `AccountService`、`AccountController`。
-- **正式上線**：要改成驗證台北通發的 token，不能直接相信前端傳來的帳號 id。目前是黑客松版本。
 
 ## 語音朗讀（長者端）
 
