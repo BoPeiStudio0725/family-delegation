@@ -118,4 +118,4 @@ Demo 使用以下台北通帳號。身分依生日自動判定（65 歲以上是
 
 ## 授權
 
-AGPL-3.0-or-later。依活動須知第捌條，請在根目錄放 `LICENSE`，內容為 https://www.gnu.org/licenses/agpl-3.0.txt 的全文，並把 `DelegationApplication.java` 開頭的 `<隊名>` 換成你們的隊名。
+AGPL-3.0-or-later，Copyright (C) 2026 麻辣燙不加辣。授權全文見 repo 根目錄的 [`LICENSE`](../LICENSE)（https://www.gnu.org/licenses/agpl-3.0.txt）。

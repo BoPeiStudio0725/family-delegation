@@ -1,6 +1,6 @@
 /*
  * 長者家屬授權微服務 — 讓長者授權家屬在指定範圍內代辦市政服務
- * Copyright (C) 2026 <隊名>
+ * Copyright (C) 2026 麻辣燙不加辣
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
