@@ -129,13 +129,6 @@ flutter run -d web-server --web-hostname 0.0.0.0 --web-port 5000
 
 錯誤格式一律是 `{"code":"SCOPE_DENIED","message":"長輩沒有授權您「幫我報名據點活動」"}`，前端直接顯示 message。
 
-## 權限設計（評審問架構時講這段）
-
-- 所有代辦 API 都標上 `@RequiresScope(...)`，由 `ScopeInterceptor` 統一檢查。檢查四件事：是不是本人、有沒有生效中的授權、有沒有過期、範圍夠不夠。
-- 檢查通過、而且操作成功之後，同一個 interceptor 會自動寫一筆 `ActionLog`，不會漏記。
-- 新增代辦項目只要兩步：在 `Enums.Scope` 加一個值，然後在 API 上標註，權限和紀錄就自動生效。
-- 授權有期限，長者可以隨時收回，收回後立刻生效。
-
 
 ## 授權
 
