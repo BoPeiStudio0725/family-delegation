@@ -1,0 +1,9 @@
+# 用法：SPRING_PROFILES_ACTIVE=postgres（docker-compose 已設定）
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/delegation}
+    username: ${DB_USER:delegation}
+    password: ${DB_PASSWORD:delegation}
+  h2:
+    console:
+      enabled: false

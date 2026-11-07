@@ -1,0 +1,13 @@
+# 只放兩個專案資料夾，根目錄其他檔案（指引、CSV、本機設定）不上傳
+/*
+!/.gitignore
+!/README.md
+!/elder-delegation/
+!/TownPass/
+
+# 建置產物與本機資料
+elder-delegation/flutter/hosting/
+elder-delegation/flutter/.firebase/
+elder-delegation/backend/*.log
+TownPass/ios/build/
+.DS_Store

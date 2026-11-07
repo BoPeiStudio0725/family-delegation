@@ -1,0 +1,40 @@
+server:
+  port: 8080
+  # 透過 ngrok / 手機熱點傳輸時，壓縮可以大幅縮短載入時間
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: text/html,text/css,text/javascript,application/javascript,application/json,application/wasm,font/ttf,font/otf,application/octet-stream
+
+spring:
+  application:
+    name: elder-delegation
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          no-cache: true   # 每次都向伺服器確認（沒變就回 304），避免手機拿到舊版網頁
+  datasource:
+    # 檔案型 H2：重開機資料還在。要清空重來就刪掉 ./data 資料夾
+    url: jdbc:h2:file:./data/delegation;MODE=PostgreSQL;AUTO_SERVER=TRUE
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  h2:
+    console:
+      enabled: true   # http://localhost:8080/h2-console 可直接看資料表
+  jackson:
+    time-zone: Asia/Taipei
+
+app:
+  invitation-ttl-minutes: 10
+  open-data:
+    # 從 data.taipei 下載「臺北市銀髮族服務-社區照顧關懷據點」CSV，放到 src/main/resources/data/service_points.csv
+    # 也可以寫成 file:/絕對路徑/xxx.csv
+    csv: classpath:data/service_points.csv
+    # 下載下來若是亂碼，改成 Big5
+    charset: UTF-8
+    source: 臺北市政府社會局｜臺北市銀髮族服務-社區照顧關懷據點（data.taipei，政府資料開放授權條款第1版）

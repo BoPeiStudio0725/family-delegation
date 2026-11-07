@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <!--
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="家人代辦：長者授權家人幫忙辦事，隨時可以收回">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="家人代辦">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>家人代辦</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!--
+    加速：一打開頁面就「同時」下載繪圖引擎、程式和中文字型，
+    不用等 flutter_bootstrap.js → main.dart.js → 字型 一個接一個。
+    iPhone（WebKit）用完整版 canvaskit；Chrome 用 chromium 版。
+  -->
+  <link rel="preload" href="main.dart.js" as="script">
+  <link rel="preload" href="assets/fonts/NotoSansTC-Subset-Regular.ttf" as="fetch" crossorigin>
+  <link rel="preload" href="assets/fonts/NotoSansTC-Subset-Bold.ttf" as="fetch" crossorigin>
+  <link rel="preload" href="assets/FontManifest.json" as="fetch" crossorigin>
+  <link rel="preload" href="assets/fonts/MaterialIcons-Regular.otf" as="fetch" crossorigin>
+  <link rel="preload" href="assets/fonts/fallback/Roboto-Regular.ttf" as="fetch" crossorigin>
+  <script>
+    (function () {
+      var blink = navigator.vendor === 'Google Inc.' || navigator.userAgent.indexOf('Edg/') >= 0;
+      var dir = blink && 'ImageDecoder' in window && Intl.v8BreakIterator ? 'canvaskit/chromium/' : 'canvaskit/';
+      [[dir + 'canvaskit.wasm', 'fetch'], [dir + 'canvaskit.js', 'modulepreload']].forEach(function (f) {
+        var l = document.createElement('link');
+        if (f[1] === 'modulepreload') { l.rel = 'modulepreload'; } else { l.rel = 'preload'; l.as = f[1]; l.crossOrigin = 'anonymous'; }
+        l.href = f[0];
+        document.head.appendChild(l);
+      });
+    })();
+  </script>
+
+  <!-- 載入畫面：Flutter 第一次下載引擎需要幾秒，先顯示這個，避免一片空白 -->
+  <style>
+    html, body { margin: 0; height: 100%; background: #f7fafa; }
+    #loading {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #f7fafa; color: #112629;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      transition: opacity .4s ease;
+    }
+    #loading.done { opacity: 0; pointer-events: none; }
+    #loading .spinner {
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 6px solid #d7eef2; border-top-color: #5AB4C5;
+      animation: spin 1s linear infinite;
+    }
+    #loading .title { margin-top: 24px; font-size: 28px; font-weight: 700; color: #356c77; }
+    #loading .hint { margin-top: 8px; font-size: 18px; }
+    #loading .slow { margin-top: 16px; font-size: 16px; color: #5e777c; visibility: hidden; text-align: center; padding: 0 24px; }
+    #loading.is-slow .slow { visibility: visible; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="loading" role="status" aria-live="polite">
+    <div class="spinner"></div>
+    <div class="title">家人代辦</div>
+    <div class="hint">載入中，請稍候…</div>
+    <div class="slow">網路比較慢，還在努力載入中</div>
+  </div>
+  <script>
+    (function () {
+      var el = document.getElementById('loading');
+      var slowTimer = setTimeout(function () { el.classList.add('is-slow'); }, 8000);
+      window.addEventListener('flutter-first-frame', function () {
+        clearTimeout(slowTimer);
+        el.classList.add('done');
+        setTimeout(function () { el.remove(); }, 400);
+      });
+    })();
+  </script>
+  <script>
+    // 長者語音（瀏覽器內建語音）。每一句話各用一個 utterance，
+    // 被打斷的舊句子回報「結束」時不會把正在說的新句子的圖示改回喇叭。
+    (function () {
+      if (!('speechSynthesis' in window)) return;
+      var synth = window.speechSynthesis;
+      var EVENTS = ['touchend', 'click', 'keydown'];
+      var gen = 0;            // 每說一句 +1；舊句子的回呼看到 gen 變了就不理
+      var firstTouch = null;  // 進入提示被 iPhone 擋住時，等第一次碰畫面再唸
+      var keepAlive = null;
+      var isDesktopChrome = /Chrome|Chromium/.test(navigator.userAgent) && !/Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
+
+      function clearFirstTouch() {
+        if (!firstTouch) return;
+        EVENTS.forEach(function (t) { document.removeEventListener(t, firstTouch, true); });
+        firstTouch = null;
+      }
+
+      function speak(text, onStart, onEnd) {
+        clearFirstTouch();
+        var my = ++gen;
+        var u = new SpeechSynthesisUtterance(text);
+        u.lang = 'zh-TW';
+        u.rate = 0.8;
+        var started = false, ended = false;
+        u.onstart = function () { started = true; if (onStart) onStart(); };
+        u.onend = u.onerror = function (e) {
+          if (ended) return;
+          ended = true;
+          if (gen === my && keepAlive) { clearInterval(keepAlive); keepAlive = null; }
+          if (onEnd) onEnd();
+        };
+        // iPhone（WebKit）和 Chrome：cancel() 之後馬上 speak() 會被吃掉不出聲。
+        // 所以沒有在說話時不要 cancel；有在說話才 cancel，稍等一下再說。
+        window.__elderUtterance = u; // iPhone 會把沒人引用的 utterance 回收掉，結束事件就不來了
+        var busy = synth.speaking || synth.pending;
+        if (busy) {
+          synth.cancel();
+          setTimeout(function () { if (gen === my) synth.speak(u); }, 120);
+        } else {
+          synth.speak(u);
+        }
+        // Chrome 桌機：長句子唸到約 15 秒會自己停住，定期 pause/resume 讓它繼續
+        if (keepAlive) clearInterval(keepAlive);
+        keepAlive = isDesktopChrome ? setInterval(function () {
+          if (gen !== my || !synth.speaking) { clearInterval(keepAlive); keepAlive = null; return; }
+          synth.pause(); synth.resume();
+        }, 10000) : null;
+        return { my: my, started: function () { return started; }, ended: function () { return ended; } };
+      }
+
+      window.__elderSpeech = {
+        say: function (text, onStart, onEnd) { speak(text, onStart, onEnd); },
+        stop: function () {
+          gen++;
+          clearFirstTouch();
+          if (keepAlive) { clearInterval(keepAlive); keepAlive = null; }
+          synth.cancel();
+        },
+        // 進入時的提示：iPhone 規定「使用者碰過畫面」才能出聲，被擋的話就在
+        // 第一次碰畫面時（在觸控事件裡同步呼叫，iOS 才允許）唸出來。
+        // 如果長輩第一下就是按喇叭，說明會直接取代這句提示。
+        sayOnEntry: function (text, onStart, onEnd) {
+          var h = speak(text, onStart, onEnd);
+          function silent() { return gen === h.my && !h.started() && !synth.speaking && !synth.pending; }
+          // 語音引擎還沒準備好（剛打開頁面時常見）：1.2 秒後還沒出聲就再說一次
+          setTimeout(function () {
+            if (!silent()) return;
+            h = speak(text, onStart, onEnd);
+            // 再等一下還是沒聲音：代表被「要先碰畫面」擋住了，等第一次碰畫面再唸
+            setTimeout(function () {
+              if (!silent()) return;
+              clearFirstTouch();
+              firstTouch = function () {
+                clearFirstTouch();
+                if (gen !== h.my) return;
+                speak(text, onStart, onEnd);
+              };
+              EVENTS.forEach(function (t) { document.addEventListener(t, firstTouch, true); });
+            }, 2500);
+          }, 1200);
+        },
+      };
+    })();
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

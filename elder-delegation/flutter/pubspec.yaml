@@ -1,0 +1,25 @@
+name: elder_delegation
+description: 長者家屬授權「家人代辦」（Taipei CodeFest 2026）
+publish_to: none
+version: 0.2.0
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0          # BSD-3-Clause，開源
+  flutter_tts: ^4.0.2   # MIT，開源；使用裝置內建語音引擎
+
+flutter:
+  uses-material-design: true
+  # 內建繁體中文字型（Noto Sans TC 子集，SIL Open Font License 1.1，授權書見 fonts/OFL.txt）
+  # 不內建的話，Flutter Web 會去 Google 下載字型，手機上第一次會看到方框或日文字形
+  fonts:
+    - family: NotoSansTC
+      fonts:
+        - asset: fonts/NotoSansTC-Subset-Regular.ttf
+          weight: 400
+        - asset: fonts/NotoSansTC-Subset-Bold.ttf
+          weight: 700
