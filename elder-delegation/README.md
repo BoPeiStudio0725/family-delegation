@@ -28,15 +28,13 @@ mvn test                     # 跑完整授權流程的自動測試
 
 確認後端正常（需要 jq）：在專案根目錄執行 `./demo.sh`，整條流程會依序印出來，最後兩步應該分別是 403 和操作紀錄。
 
-## 2. 匯入開放資料（重要：評分項目「資料來源正確」）
+## 2. 匯入開放資料
 
 1. 到 data.taipei 或 data.gov.tw 搜尋「**臺北市銀髮族服務-社區照顧關懷據點**」（臺北市政府社會局，政府資料開放授權條款第 1 版），下載 CSV。
 2. 存成 `backend/src/main/resources/data/service_points.csv`。
 3. 刪掉 `backend/data/` 資料夾（清空資料庫），重新啟動，log 會顯示「已匯入 N 筆」。
 4. 如果出現亂碼，到 `application.yml` 把 `app.open-data.charset` 改成 `Big5`。
 5. 程式會依表頭名稱自動對應欄位。如果 log 顯示「找不到名稱欄位」，就把實際欄名加進 `DataSeeder.NAME_COLS`。
-
-沒放 CSV 時會自動建立名稱帶【示範】的假據點。**Demo 前一定要換成真資料。**
 
 ## 3. 啟動 Flutter（建置成網頁，放進台北通 webview）
 
@@ -50,10 +48,6 @@ flutter run -d chrome
 # 給台北通 webview 開：讓同網路的手機或模擬器連得到
 flutter run -d web-server --web-hostname 0.0.0.0 --web-port 5000
 ```
-
-- 後端位址：**沒有設定時，自動用「網頁所在主機的 8080 port」**。網頁和後端跑在同一台電腦上，就不用另外設定。不在同一台的話，加上 `--dart-define=API_BASE=http://<後端IP>:8080/api`。
-- 在台北通原始碼的 `lib/page/city_service/model/my_service_model.dart` 加一個服務，`destinationUrl` 填 `http://<電腦IP>:5000/`，`forceWebViewTitle` 填 `家人代辦`。
-- **Android 版台北通**：台北通預設不允許 http，要在台北通的 `android/app/src/main/AndroidManifest.xml` 的 `<application` 加上 `android:usesCleartextTraffic="true"`。另外，Android WebView 不支援網頁語音朗讀，所以 Demo 建議用 iOS。
 
 ## 台北通登入與身分辨識
 
@@ -71,16 +65,6 @@ flutter run -d web-server --web-hostname 0.0.0.0 --web-port 5000
 - **綁定時記住身分**：長輩產生邀請碼時記為長輩，家屬輸入邀請碼時記為家屬。之後再從台北通打開，就直接進入對應的介面。
 - **選錯可以改**：還沒有任何綁定時，首頁下方有「重新選擇身分」。已經綁定就不能換，避免關係錯亂。
 - **對應的程式**：前端在 `lib/delegation/townpass/`、`entry.dart`；後端在 `AccountService`、`AccountController`。
-- **正式上線**：要改成驗證台北通發的 token，不能直接相信前端傳來的帳號 id。目前是黑客松版本。
-
-### Demo 時要兩個不同的台北通帳號
-
-台北通的帳號是假資料，寫在台北通原始碼的 `assets/mock_data/account.json`，預設是「金大森」。要讓兩台模擬器登入不同的人：
-
-1. 模擬器 A 直接 `flutter run -d <A>`，登入的是預設的金大森（當家屬）。
-2. 把 `account.json` 的 `id` 改成別的字串（例如 `grandma-0001`），`realName` 改成 `金阿嬤`，`birthday` 改成 `1950/03/02`，然後 `flutter run -d <B>`。B 會用改過的檔案重新建置，A 不受影響。
-
-用 Chrome 開發時不需要這樣做，「開發測試模式」可以直接選金大森、金阿嬤、金小妹。
 
 ## 語音朗讀（長者端）
 
@@ -131,25 +115,6 @@ Demo 使用以下台北通帳號。身分依生日自動判定（65 歲以上是
 
 錯誤格式一律是 `{"code":"SCOPE_DENIED","message":"長輩沒有授權您「幫我報名據點活動」"}`，前端直接顯示 message。
 
-## 權限設計（評審問架構時講這段）
-
-- 所有代辦 API 都標上 `@RequiresScope(...)`，由 `ScopeInterceptor` 統一檢查。檢查四件事：是不是本人、有沒有生效中的授權、有沒有過期、範圍夠不夠。
-- 檢查通過、而且操作成功之後，同一個 interceptor 會自動寫一筆 `ActionLog`，不會漏記。
-- 新增代辦項目只要兩步：在 `Enums.Scope` 加一個值，然後在 API 上標註，權限和紀錄就自動生效。
-- 授權有期限，長者可以隨時收回，收回後立刻生效。
-
-## 2 分鐘 Demo 腳本
-
-用兩台模擬器開台北通：左邊是長輩（金阿嬤），右邊是家屬（金大森）。開場先示範「第一次使用」的選擇身分頁，綁定之後關掉再從台北通打開，畫面會直接進入長輩或家屬介面。
-
-1. 痛點（10 秒）：長輩不會用 App，家人只好拿長輩的手機、記長輩的密碼。這樣既不安全，也沒有紀錄。
-2. 阿嬤按「讓家人幫我辦事」，畫面出現大字號碼。
-3. 小明輸入號碼，阿嬤的手機自動跳到同意頁。
-4. 阿嬤勾選「查看我的資料」和「幫我報名據點活動」，期限選 30 天，按同意。
-5. 小明從開放資料據點中幫阿嬤報名。（決選 5 分鐘時可以加演：另一位家屬只拿到「查看資料」的授權，按報名會被擋下。）
-6. 阿嬤打開「家人幫我做過的事」，每一筆操作都看得到。
-7. 阿嬤按「收回」，小明再按報名，跳出「長輩已收回授權」。
-8. 收尾：長者保有自主權，家人也能安心代辦。
 
 ## 授權
 
